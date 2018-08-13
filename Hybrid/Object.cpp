@@ -55,7 +55,7 @@ public:
 				elements.push_back(a); elements.push_back(b); elements.push_back(c);
 				//normals.push_back(d); normals.push_back(e); normals.push_back(f);
 
-				std::cout << a << " " << b << " " << c << std::endl;
+				//std::cout << a << " " << b << " " << c << std::endl;
 			}
 			else if (line[0] == '#')
 			{
@@ -128,7 +128,7 @@ public:
 		glBindVertexArray(vao);
 		//glDrawArrays(GL_POINTS, 0, elements.size());
 		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-		glDrawElements(GL_TRIANGLES, elements.size(), GL_UNSIGNED_INT, NULL);
+		glDrawElements(GL_POINTS, elements.size(), GL_UNSIGNED_INT, NULL);
 		glBindVertexArray(0);
 
 	}

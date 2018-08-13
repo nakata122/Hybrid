@@ -113,7 +113,7 @@ int main(void)
 	);
 
 	Object box;
-	box.LoadObj("triangulated.obj");
+	box.LoadObj("dragon.obj");
 	box.CreateVBO();
 	
 	
@@ -140,7 +140,7 @@ int main(void)
 
 		//Camera movement
 		CameraMatrix = glm::lookAt(
-			glm::vec3(20*cos(phi)*sin(theta), 20*sin(phi)*sin(theta), 20*cos(theta)), // the position of your camera, in world space
+			glm::vec3(20*cos(phi)*sin(theta),20*sin(phi)*sin(theta), 20*cos(theta)), // the position of your camera, in world space
 			glm::vec3(0, 0, 0),   // where you want to look at, in world space
 			glm::vec3(0, cos(phi), 0)        // probably glm::vec3(0,1,0), but (0,-1,0) would make you looking upside-down, which can be great too
 		);
