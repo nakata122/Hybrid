@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>../test_images/logo.png</file>
+        <file>../test_images/logo_processing.png</file>
+        <file>../test_images/smallpaint_bvh.ppm</file>
+        <file>../test_images/smallpaint_fixed.ppm</file>
+        <file>../test_images/smallpaint_painterly.ppm</file>
+        <file>../test_images/smallpaint_ppm.ppm</file>
+        <file>../test_images/smallpaint_pssmlt.ppm</file>
+        <file>../test_images/smallpaint_rrt.ppm</file>
+        <file>../test_images/smallpaint_smallmedia.ppm</file>
+        <file>../test_images/smallpaint_vrl.ppm</file>
+    </qresource>
+</RCC>
