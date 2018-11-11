@@ -1,0 +1,24 @@
+﻿  BVH.cpp
+  main.cpp
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 'e': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(48): warning C4101: 'dummy': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 'f': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 't': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 'd': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(155): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+d:\c++\hybrid\hybrid\hybrid\utils.h(28): warning C4244: 'argument': conversion from 'GLintptr' to 'GLsizei', possible loss of data
+d:\c++\hybrid\hybrid\hybrid\utils.h(31): warning C4244: 'argument': conversion from 'GLintptr' to 'GLsizei', possible loss of data
+d:\c++\hybrid\hybrid\hybrid\main.cpp(128): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+d:\c++\hybrid\hybrid\hybrid\main.cpp(132): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+  Object.cpp
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 'e': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(48): warning C4101: 'dummy': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 'f': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 't': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(49): warning C4101: 'd': unreferenced local variable
+d:\c++\hybrid\hybrid\hybrid\object.cpp(155): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  Generating Code...
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'D:\C++\Hybrid\Hybrid\x64\Debug\vc120.pdb'; linking object as if no debug info
+  Hybrid.vcxproj -> D:\C++\Hybrid\Hybrid\x64\Debug\Hybrid.exe

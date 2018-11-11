@@ -1,0 +1,143 @@
+#version 430 
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+layout (rgba32f, binding = 0) uniform image2D img_output;
+layout( location=1 ) uniform vec2 pos;
+layout( location=2 ) uniform vec3 direction;
+
+struct Triangle {
+	vec4 v0, v1, v2;
+};
+
+layout (std430 , binding = 1) buffer VertexBuffer {
+   Triangle verts [];
+};
+
+struct BVHNode
+{
+	vec4 bboxMin;
+	vec4 bboxMax;
+};
+
+const float PI = 3.1415926535897932384626433832795;
+
+struct AABB {
+	vec3 minE, maxE;
+};
+
+struct inner {
+	AABB test;
+	float a, b;
+};
+
+
+struct Ray 
+{ 
+	vec3 origin;
+	vec3 dir;
+}; 
+
+struct Sphere
+{
+	vec3 center;
+	float radius;
+	vec3 surfaceColor;
+	float reflection;
+};
+float intersectionSphere(Ray ray, Sphere sphere)
+{
+	vec3 omc;
+	float b, c, bsqmc, t=0.0; 
+	omc = sphere.center - ray.origin; 
+	b = dot (ray.dir, omc); 
+	c = dot (omc, omc) - sphere.radius * sphere.radius; 
+	bsqmc = b * b - c; 
+
+	if(bsqmc <= 0.0) return 0;
+	else {
+		t = b + sqrt(bsqmc);
+		return t;
+	}
+}
+
+float intersectRayTri(Ray r, Triangle tri)
+{
+
+	vec3 v0v1 = tri.v1.xyz*20 - tri.v0.xyz*20; 
+    vec3 v0v2 = tri.v2.xyz*20 - tri.v0.xyz*20; 
+    vec3 pvec = cross(r.dir, v0v2); 
+    float det = dot(v0v1, pvec);
+
+	float invDet = 1 / det; 
+ 
+    vec3 tvec = r.origin - tri.v0.xyz*20; 
+    float u = dot(tvec, pvec) * invDet; 
+    if (u < 0 || u > 1) return 0; 
+ 
+    vec3 qvec = cross(tvec, v0v1); 
+    float v = dot(r.dir, qvec) * invDet; 
+    if (v < 0 || u + v > 1) return 0; 
+ 
+    float t = dot(v0v2, qvec) * invDet; 
+ 
+    return t; 
+}
+
+void main () {
+	vec4 pixel = vec4 (0.0, 0.0, 0.0, 1.0);
+
+	ivec2 localIndex =  ivec2(gl_LocalInvocationID.xy);
+
+	ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
+	int pixel_z = int(gl_GlobalInvocationID.z);
+
+	float max_x = 5.0;
+	float max_y = 5.0;
+	ivec2 dims = imageSize (img_output);
+	float fov = 30.0;
+	float aspectratio = dims.x / float(dims.y);
+	float angle = tan(PI * 0.5 * fov / 180.);
+	float x = ((2.0 * (pixel_coords.x + 0.5) / dims.x) - 1.0) * aspectratio;
+	float y = (2.0 * (pixel_coords.y + 0.5f) / dims.y) - 1.0;
+	Ray camera = Ray(vec3 (x * max_x , y * max_y, 0.0), vec3 (0.0, 0.0, -1.0));
+	vec3 light = vec3(pos, -1);
+	Sphere sphere1;
+
+	int l=0, r=verts.length(), br=0;
+	while(l < r) {
+		int mid = int(floor((l+r)/2));
+		
+		if((verts[mid].v0.x + verts[mid].v1.x + verts[mid].v2.x)/3*20 + 0.1 < camera.origin.x) {
+			l = mid + 1;
+		} else {
+			r = mid;
+		}
+	}
+	int temp = l;
+	
+    r = verts.length();
+	while(l < r){
+        int mid = int(floor((l+r)/2));
+
+        if((verts[mid].v0.x + verts[mid].v1.x + verts[mid].v2.x)/3*20 - 0.1 > camera.origin.x){
+            r = mid;
+        } else {
+            l = mid+1;
+        }
+    }
+	
+	
+	for(int i=temp;i<l-1;i++){
+		float t = intersectRayTri(camera, verts[i]);
+
+		if (t > 0.0) {
+			vec3 hp = camera.origin + camera.dir * t;
+			vec3 normal = normalize(hp);
+
+			float cost = dot(light, normal);
+
+			pixel = vec4 (vec3(0.4,0.4,0.4)*cost, 1.0);
+			break;
+		}
+	}
+	imageStore (img_output, pixel_coords, pixel);
+} 
