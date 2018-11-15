@@ -83,7 +83,7 @@ int main(void)
 	);
 
 	Object box;
-	box.LoadObj("bunny.obj");
+	box.LoadObj("dragon.obj");
 	box.createSSBO();
 	
 	
@@ -131,7 +131,7 @@ int main(void)
 		{
 			glUniform3f(direction, (rand() % 100) / 100, (rand() % 100) / 100, (rand() % 100) / 100);
 		}
-		box.createSSBO();
+		//box.createSSBO();
 		glDispatchCompute(SCREEN_WIDTH/8, SCREEN_HEIGHT/8, 1);
 
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

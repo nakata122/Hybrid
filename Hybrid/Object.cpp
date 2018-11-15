@@ -23,7 +23,7 @@ class Object {
 	glm::mat4 Rotate = glm::mat4(1.0f);
 	glm::mat4 mvp = glm::mat4(1.0f);
 
-	GLuint vbo, ibo, vao, ssbo;
+	GLuint vbo, ibo, vao, ssbo, bvhbo;
 public:
 	void LoadObj(const char* filename)
 	{
@@ -40,7 +40,7 @@ public:
 			{
 				std::istringstream s(line.substr(2));
 				glm::vec4 v; s >> v.x; s >> v.y; s >> v.z; v.w = 1.0f;
-				vertices.push_back(v);
+				vertices.push_back(v*glm::vec4(0.5,0.5,0.5,1));
 			}
 			else if (line.substr(0, 2) == "f ")
 			{
@@ -117,19 +117,27 @@ public:
 		else if (a.x > b.x) return 0;
 	}
 	static bool sortXTri(const BVH::Triangle &a, const BVH::Triangle &b) {
-		if ((a.v0.x + a.v1.x + a.v2.x)/3 < (b.v0.x + b.v1.x + b.v2.x) / 3) return 1;
+		if ((a.v[0].x + a.v[1].x + a.v[2].x)/3 < (b.v[0].x + b.v[1].x + b.v[2].x) / 3) return 1;
 		else return 0;
 	}
 	void createSSBO() {
 
 		BVH bvh_builder;
 
-		bvh_builder.CreateBVH(triangles);
 		std::sort(triangles.begin(), triangles.end(), sortXTri);
+		bvh_builder.CreateBVH(triangles.begin(), triangles.end());
+		std::cout << bvh_builder.boundingVolume.size() << std::endl;
+
 		glGenBuffers(1, &ssbo);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, triangles.size() * sizeof(BVH::Triangle), &triangles[0], GL_STATIC_DRAW);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo); // Buffer Binding 1
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo); 
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+		glGenBuffers(1, &bvhbo);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, bvhbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, bvh_builder.boundingVolume.size() * sizeof(BVH::BVHNode), &bvh_builder.boundingVolume[0], GL_STATIC_DRAW);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, bvhbo); 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	}
 	void ScaleObject(glm::mat4 Scaling){

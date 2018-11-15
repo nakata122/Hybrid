@@ -16,19 +16,17 @@ struct BVHNode
 {
 	vec4 bboxMin;
 	vec4 bboxMax;
+	int secondChild;
+	int id;
+	int isLeaf;
+	float padding;
+};
+
+layout (std430 , binding = 2) buffer BVH {
+   BVHNode nodes [];
 };
 
 const float PI = 3.1415926535897932384626433832795;
-
-struct AABB {
-	vec3 minE, maxE;
-};
-
-struct inner {
-	AABB test;
-	float a, b;
-};
-
 
 struct Ray 
 { 
@@ -43,6 +41,7 @@ struct Sphere
 	vec3 surfaceColor;
 	float reflection;
 };
+
 float intersectionSphere(Ray ray, Sphere sphere)
 {
 	vec3 omc;
@@ -62,14 +61,14 @@ float intersectionSphere(Ray ray, Sphere sphere)
 float intersectRayTri(Ray r, Triangle tri)
 {
 
-	vec3 v0v1 = tri.v1.xyz*20 - tri.v0.xyz*20; 
-    vec3 v0v2 = tri.v2.xyz*20 - tri.v0.xyz*20; 
+	vec3 v0v1 = tri.v1.xyz - tri.v0.xyz; 
+    vec3 v0v2 = tri.v2.xyz - tri.v0.xyz; 
     vec3 pvec = cross(r.dir, v0v2); 
     float det = dot(v0v1, pvec);
 
 	float invDet = 1 / det; 
  
-    vec3 tvec = r.origin - tri.v0.xyz*20; 
+    vec3 tvec = r.origin - tri.v0.xyz; 
     float u = dot(tvec, pvec) * invDet; 
     if (u < 0 || u > 1) return 0; 
  
@@ -80,6 +79,20 @@ float intersectRayTri(Ray r, Triangle tri)
     float t = dot(v0v2, qvec) * invDet; 
  
     return t; 
+}
+
+bool intersectRayBox(Ray r, vec3 invdir, vec4 pmin, vec4 pmax)
+{
+	const vec3 f = (pmax.xyz - r.origin.xyz) * invdir;
+	const vec3 n = (pmin.xyz - r.origin.xyz) * invdir;
+
+	const vec3 tmax = max(f, n);
+	const vec3 tmin = min(f, n);
+
+	const float t1 = min(tmax.x, min(tmax.y, tmax.z));
+	const float t0 = max(max(tmin.x, max(tmin.y, tmin.z)), 0);
+
+	return t1 >= t0;
 }
 
 void main () {
@@ -99,45 +112,58 @@ void main () {
 	float x = ((2.0 * (pixel_coords.x + 0.5) / dims.x) - 1.0) * aspectratio;
 	float y = (2.0 * (pixel_coords.y + 0.5f) / dims.y) - 1.0;
 	Ray camera = Ray(vec3 (x * max_x , y * max_y, 0.0), vec3 (0.0, 0.0, -1.0));
-	vec3 light = vec3(pos, -1);
+	vec3 light = vec3(pos, -0.1);
 	Sphere sphere1;
+	
+	vec3 invdir = 1.0 / camera.dir.xyz;
+	int index = 0;
+	int stack[64];
+	int stackSize=0;
 
-	int l=0, r=verts.length(), br=0;
-	while(l < r) {
-		int mid = int(floor((l+r)/2));
-		
-		if((verts[mid].v0.x + verts[mid].v1.x + verts[mid].v2.x)/3*20 + 0.1 < camera.origin.x) {
-			l = mid + 1;
+	float minT=100000;
+
+	while(stackSize < 64){
+		BVHNode node = nodes[index];
+		if(intersectRayBox(camera, invdir, node.bboxMin, node.bboxMax)){
+			if(node.isLeaf == 1){
+				float t = intersectRayTri(camera, verts[node.id]);
+
+				if (t > 0.0 && t < minT) {
+					minT = t;
+				}
+
+				t = intersectRayTri(camera, verts[node.id+1]);
+
+				if (t > 0.0 && t < minT) {
+					minT = t;
+				}
+
+				stackSize--;
+				if (stackSize < 0) {
+					break;
+				}
+				index = stack[stackSize];
+			} else {
+				stack[stackSize] = node.secondChild;
+				index++;
+				stackSize++;
+			}
 		} else {
-			r = mid;
+			stackSize--;
+			if (stackSize < 0) {
+				break;
+			}
+			index = stack[stackSize];
 		}
 	}
-	int temp = l;
-	
-    r = verts.length();
-	while(l < r){
-        int mid = int(floor((l+r)/2));
 
-        if((verts[mid].v0.x + verts[mid].v1.x + verts[mid].v2.x)/3*20 - 0.1 > camera.origin.x){
-            r = mid;
-        } else {
-            l = mid+1;
-        }
-    }
-	
-	
-	for(int i=temp;i<l-1;i++){
-		float t = intersectRayTri(camera, verts[i]);
+	if(minT != 100000) {
+		vec3 hp = camera.origin + camera.dir * minT;
+		vec3 normal = normalize(hp);
 
-		if (t > 0.0) {
-			vec3 hp = camera.origin + camera.dir * t;
-			vec3 normal = normalize(hp);
+		float cost = dot(light, normal);
 
-			float cost = dot(light, normal);
-
-			pixel = vec4 (vec3(0.4,0.4,0.4)*cost, 1.0);
-			break;
-		}
+		pixel = vec4 (vec3(0.4,0.4,0.4)*cost, 1.0);
 	}
 	imageStore (img_output, pixel_coords, pixel);
 } 
